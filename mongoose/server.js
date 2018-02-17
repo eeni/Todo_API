@@ -7,9 +7,11 @@ var bodyparser=require('body-parser');
 var express=require('express');
 var app=express();
 
+const port=process.env.PORT||3000;
 
 app.use(bodyparser.json());
 
+//create one todo
 app.post('/todos',(req,res)=>{
   // console.log(req.body);
   var todo=new TodoModel({text:req.body.text});
@@ -20,6 +22,7 @@ app.post('/todos',(req,res)=>{
   })
 });
 
+//all todos
 app.get('/todos',(req,res)=>{
   TodoModel.find().then((todos)=>{
     res.send({
@@ -52,6 +55,27 @@ else{
 
 });
 
-app.listen(3000,()=>{
-  console.log('Listening on port 3000');
+
+//deleteTodo
+app.delete('/todos/:id',(req,res)=>{
+var id=req.params.id;
+if(!ObjectID.isValid(id)){
+  return res.status(404).send();
+}
+
+TodoModel.findByIdAndRemove(id).then((todo)=>{
+  if(!todo){
+    return res.status(404).send();
+  }
+
+  res.send(todo);
+}).catch((e)=>{
+  res.status(400).send();
+})
+
+})
+
+
+app.listen(port,()=>{
+  console.log(`Listening on port ${port}`);
 })
