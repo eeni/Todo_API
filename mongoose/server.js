@@ -1,6 +1,7 @@
 var {mongoose}=require('./mongooseconfiguration/mongotodo');
 var {TodoModel}=require('./models/todoconf');
 var {userModel}=require('./models/userconfig');
+const _=require('lodash');
 
 var{ObjectID}=require('mongodb');
 var bodyparser=require('body-parser');
@@ -69,6 +70,34 @@ TodoModel.findByIdAndRemove(id).then((todo)=>{
   }
 
   res.send(todo);
+}).catch((e)=>{
+  res.status(400).send();
+})
+
+})
+
+//updateTodo
+app.patch('/todos/:id',(req,res)=>{
+  var id=req.params.id;
+  var body=_.pick(req.body,['text','completed']);
+if(!ObjectID.isValid(id)){
+  return res.status(404).send();
+}
+
+if(_.isBoolean(body.completed)&&body.completed){
+  body.completedat=new Date().getTime();
+}
+else{
+  body.completedat=null;
+}
+
+TodoModel.findByIdAndUpdate(id,{$set:body},{new:true}).then((todo)=>{
+  if(!todo){
+    res.status(404).send();
+  }
+  else{
+    res.send({todo});
+  }
 }).catch((e)=>{
   res.status(400).send();
 })
